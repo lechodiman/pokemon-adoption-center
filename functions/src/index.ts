@@ -77,4 +77,23 @@ app.post('/adoption-request', async (req, response) => {
   }
 });
 
+app.get('/adoption-request/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const adoptionRequestRef = db.collection('adoptionRequests').doc(id);
+    const adoptionRequest = await adoptionRequestRef.get();
+
+    if (!adoptionRequest.exists) {
+      res.status(404).send('Adoption request not found');
+      return;
+    }
+
+    res.json({ id: adoptionRequest.id, ...adoptionRequest.data() });
+  } catch (error) {
+    logger.error('Error getting adoption request:', error);
+    res.status(500).send('Error getting adoption request');
+  }
+});
+
 export const api = onRequest(app);
