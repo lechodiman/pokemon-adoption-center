@@ -101,6 +101,7 @@ export const api = onRequest(app);
 
 const MAX_TRANSPORTATION_TIME_MINUTES = 3;
 const MIN_TRANSPORTATION_TIME_MINUTES = 1;
+const ONE_MINUTE_MS = 60 * 1000;
 
 function getRandomTimeInMilliseconds(minMinutes: number, maxMinutes: number): number {
   const MINUTES_TO_MILLISECONDS = 60 * 1000;
@@ -108,42 +109,46 @@ function getRandomTimeInMilliseconds(minMinutes: number, maxMinutes: number): nu
   return (randomMinutes + minMinutes) * MINUTES_TO_MILLISECONDS;
 }
 
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 export const onAdoptionRequestCreated = firestore
   .document('adoptionRequests/{adoptionRequestID}')
   .onCreate(async (snapshot, context) => {
     const adoptionRequestId = context.params.adoptionRequestID;
     const adoptionRequestRef = db.collection('adoptionRequests').doc(adoptionRequestId);
-
     const pokemonRef = db.collection('pokemon').doc(snapshot.data().pokemonID);
 
     logger.info(`New adoption request created with id: ${adoptionRequestId}`);
 
-    setTimeout(async () => {
-      logger.info(
-        `Changing status to 'transportation' for adoption request id: ${adoptionRequestId}`
-      );
-      await adoptionRequestRef.update({ status: 'transportation' });
+    await delay(ONE_MINUTE_MS);
 
-      // After 1-3 minutes, decide if the adoption is successful
-      const transportationTime = getRandomTimeInMilliseconds(
-        MIN_TRANSPORTATION_TIME_MINUTES,
-        MAX_TRANSPORTATION_TIME_MINUTES
-      );
+    logger.info(
+      `Changing status to 'transportation' for adoption request id: ${adoptionRequestId}`
+    );
+    await adoptionRequestRef.update({ status: 'transportation' });
 
-      setTimeout(async () => {
-        const isSuccess = Math.random() < 0.95;
-        const newStatus = isSuccess ? 'success' : 'failure';
+    // After 1-3 minutes, decide if the adoption is successful
+    const transportationTime = getRandomTimeInMilliseconds(
+      MIN_TRANSPORTATION_TIME_MINUTES,
+      MAX_TRANSPORTATION_TIME_MINUTES
+    );
 
-        logger.info(
-          `Changing status to '${newStatus}' for adoption request id: ${adoptionRequestId}`
-        );
+    logger.info(
+      `Transportation time for adoption request id: ${adoptionRequestId}: ${transportationTime}ms`
+    );
 
-        await adoptionRequestRef.update({ status: newStatus });
+    await delay(transportationTime);
 
-        if (!isSuccess) {
-          logger.info(`Making pokemon id: ${snapshot.data().pokemonID} available again`);
-          await pokemonRef.update({ available: true });
-        }
-      }, transportationTime);
-    }, 60 * 1000);
+    const isSuccess = Math.random() < 0.95;
+    const newStatus = isSuccess ? 'success' : 'failure';
+
+    logger.info(
+      `Changing status to '${newStatus}' for adoption request id: ${adoptionRequestId}`
+    );
+    await adoptionRequestRef.update({ status: newStatus });
+
+    if (!isSuccess) {
+      logger.info(`Making pokemon id: ${snapshot.data().pokemonID} available again`);
+      await pokemonRef.update({ available: true });
+    }
   });
