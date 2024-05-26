@@ -1,4 +1,5 @@
 import { onRequest } from 'firebase-functions/v2/https';
+import { firestore } from 'firebase-functions';
 import * as logger from 'firebase-functions/logger';
 import { db } from './db';
 import * as express from 'express';
@@ -97,3 +98,52 @@ app.get('/adoption-request/:id', async (req, res) => {
 });
 
 export const api = onRequest(app);
+
+const MAX_TRANSPORTATION_TIME_MINUTES = 3;
+const MIN_TRANSPORTATION_TIME_MINUTES = 1;
+
+function getRandomTimeInMilliseconds(minMinutes: number, maxMinutes: number): number {
+  const MINUTES_TO_MILLISECONDS = 60 * 1000;
+  const randomMinutes = Math.random() * (maxMinutes - minMinutes);
+  return (randomMinutes + minMinutes) * MINUTES_TO_MILLISECONDS;
+}
+
+export const onAdoptionRequestCreated = firestore
+  .document('adoptionRequests/{adoptionRequestID}')
+  .onCreate(async (snapshot, context) => {
+    const adoptionRequestId = context.params.adoptionRequestID;
+    const adoptionRequestRef = db.collection('adoptionRequests').doc(adoptionRequestId);
+
+    const pokemonRef = db.collection('pokemon').doc(snapshot.data().pokemonID);
+
+    logger.info(`New adoption request created with id: ${adoptionRequestId}`);
+
+    setTimeout(async () => {
+      logger.info(
+        `Changing status to 'transportation' for adoption request id: ${adoptionRequestId}`
+      );
+      await adoptionRequestRef.update({ status: 'transportation' });
+
+      // After 1-3 minutes, decide if the adoption is successful
+      const transportationTime = getRandomTimeInMilliseconds(
+        MIN_TRANSPORTATION_TIME_MINUTES,
+        MAX_TRANSPORTATION_TIME_MINUTES
+      );
+
+      setTimeout(async () => {
+        const isSuccess = Math.random() < 0.95;
+        const newStatus = isSuccess ? 'success' : 'failure';
+
+        logger.info(
+          `Changing status to '${newStatus}' for adoption request id: ${adoptionRequestId}`
+        );
+
+        await adoptionRequestRef.update({ status: newStatus });
+
+        if (!isSuccess) {
+          logger.info(`Making pokemon id: ${snapshot.data().pokemonID} available again`);
+          await pokemonRef.update({ available: true });
+        }
+      }, transportationTime);
+    }, 60 * 1000);
+  });
