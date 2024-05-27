@@ -7,7 +7,12 @@ const pokemonRouter = express.Router();
 pokemonRouter.get('/pokemon', async (req, res) => {
   try {
     const pokemon = await PokemonService.findAvailablePokemon();
-    res.json(pokemon);
+    const responseFormat = req.headers.accept;
+    if (responseFormat === 'text/html') {
+      res.render('pokemon', { pokemon });
+    } else {
+      res.json(pokemon);
+    }
   } catch (error) {
     logger.error('Error getting available Pokemon:', error);
     res.status(500).send('Error getting available Pokemon');

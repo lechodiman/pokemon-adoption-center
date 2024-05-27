@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Pokemon List</title>
+  </head>
+  <body>
+    <table>
+      <tr>
+        <th>ID</th>
+        <th>Photo</th>
+        <th>Types</th>
+        <th>Name</th>
+        <th>Nickname</th>
+      </tr>
+      <% pokemon.forEach(p => { %>
+      <tr>
+        <td><%= p.id %></td>
+        <td><img src="<%= p.photoURL %>" alt="<%= p.name %>" /></td>
+        <td><%= p.types.join(', ') %></td>
+        <td><%= p.name %></td>
+        <td><%= p.nickname %></td>
+      </tr>
+      <% }); %>
+    </table>
+  </body>
+</html>
