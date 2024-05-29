@@ -20,19 +20,12 @@ adoptionRequestsRouter.post('/adoption-request', async (req, response) => {
       return;
     }
 
-    const previousAdoptions =
-      await AdoptionRequestsService.findPreviousSuccessfulAdoptions(rut);
-    const hasPreviousSuccess = !previousAdoptions.empty;
-
-    const successProbability = hasPreviousSuccess ? 0.9 : 0.5;
-    const willAdopt = Math.random() < successProbability;
-
-    if (!willAdopt) {
+    if (!(await AdoptionRequestsService.canAdopt(rut))) {
       response.status(403).send('Adoption request rejected');
       return;
     }
 
-    const adoptionRefId = await PokemonService.adoptPokemon(pokemonID, {
+    const adoptionId = await PokemonService.adoptPokemon(pokemonID, {
       name,
       lastname,
       address,
@@ -40,7 +33,7 @@ adoptionRequestsRouter.post('/adoption-request', async (req, response) => {
       description,
     });
 
-    response.status(201).json({ adpotionId: adoptionRefId });
+    response.status(201).json({ adpotionId: adoptionId });
   } catch (error) {
     logger.error('Error adopting Pokemon:', error);
     response.status(500).send('Error adopting Pokemon');

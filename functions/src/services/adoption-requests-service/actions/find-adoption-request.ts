@@ -1,4 +1,5 @@
 import { db } from '../../../db';
+import AdoptionRequestSchema from '../models/adoption-request';
 
 export async function findAdoptionRequestById(id: string) {
   const adoptionRequestRef = db.collection('adoptionRequests').doc(id);
@@ -8,5 +9,8 @@ export async function findAdoptionRequestById(id: string) {
     return null;
   }
 
-  return { id: adoptionRequest.id, ...adoptionRequest.data() };
+  return AdoptionRequestSchema.parse({
+    id: adoptionRequest.id,
+    ...adoptionRequest.data(),
+  });
 }
