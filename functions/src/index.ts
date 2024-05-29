@@ -6,6 +6,7 @@ import * as path from 'path';
 import adoptionRequestsRouter from './api/adoption-requests/router';
 import pokemonRouter from './api/pokemon/router';
 import { AdoptionRequestsService } from './services/adoption-requests-service';
+import rateLimit from 'express-rate-limit';
 
 const app = express();
 
@@ -13,6 +14,14 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '..', 'views'));
 
 app.use(cors({ origin: true }));
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100,
+});
+
+app.use(limiter);
+
 app.use(pokemonRouter);
 app.use(adoptionRequestsRouter);
 
