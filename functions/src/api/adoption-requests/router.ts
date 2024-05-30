@@ -2,13 +2,33 @@ import express = require('express');
 import * as logger from 'firebase-functions/logger';
 import { AdoptionRequestsService } from '../../services/adoption-requests-service';
 import { PokemonService } from '../../services/pokemon-service';
+import { z } from 'zod';
+import { validateRut } from '@fdograph/rut-utilities';
 
 const adoptionRequestsRouter = express.Router();
 
+const adoptionRequestSchema = z.object({
+  name: z.string(),
+  lastname: z.string(),
+  address: z.string(),
+  rut: z.string().refine((value) => validateRut(value), {
+    message: 'Invalid RUT',
+  }),
+  description: z.string(),
+  pokemonID: z.string(),
+});
+
 adoptionRequestsRouter.post('/adoption-request', async (req, response) => {
-  const { name, lastname, address, rut, description, pokemonID } = req.body;
+  const { error, data } = adoptionRequestSchema.safeParse(req.body);
+
+  if (error) {
+    response.status(400).send(error.message);
+    return;
+  }
 
   try {
+    const { name, lastname, address, rut, description, pokemonID } = data;
+
     const pokemon = await PokemonService.findPokemon(pokemonID as string);
     if (!pokemon) {
       response.status(404).send('Pokemon not found');
@@ -42,6 +62,7 @@ adoptionRequestsRouter.post('/adoption-request', async (req, response) => {
 
 adoptionRequestsRouter.get('/adoption-request/:id', async (req, res) => {
   const { id } = req.params;
+
   try {
     const adoptionRequest = await AdoptionRequestsService.findAdoptionRequestById(id);
 
