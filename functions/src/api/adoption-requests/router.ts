@@ -4,10 +4,11 @@ import { AdoptionRequestsService } from '../../services/adoption-requests-servic
 import { PokemonService } from '../../services/pokemon-service';
 import { z } from 'zod';
 import { validateRut } from '@fdograph/rut-utilities';
+import { BlockedUsersService } from '../../services/blocked-users-service';
 
 const adoptionRequestsRouter = express.Router();
 
-const adoptionRequestSchema = z.object({
+const PostAdoptionRequestSchema = z.object({
   name: z.string(),
   lastname: z.string(),
   address: z.string(),
@@ -19,7 +20,7 @@ const adoptionRequestSchema = z.object({
 });
 
 adoptionRequestsRouter.post('/adoption-request', async (req, response) => {
-  const { error, data } = adoptionRequestSchema.safeParse(req.body);
+  const { error, data } = PostAdoptionRequestSchema.safeParse(req.body);
 
   if (error) {
     response.status(400).send(error.message);
@@ -29,7 +30,7 @@ adoptionRequestsRouter.post('/adoption-request', async (req, response) => {
   try {
     const { name, lastname, address, rut, description, pokemonID } = data;
 
-    const pokemon = await PokemonService.findPokemon(pokemonID as string);
+    const pokemon = await PokemonService.findPokemon(pokemonID);
     if (!pokemon) {
       response.status(404).send('Pokemon not found');
       return;
@@ -40,7 +41,24 @@ adoptionRequestsRouter.post('/adoption-request', async (req, response) => {
       return;
     }
 
+    const isUserBlocked = await BlockedUsersService.isUserBlocked(rut);
+
+    if (isUserBlocked) {
+      response.status(403).send('User is blocked');
+      return;
+    }
+
     if (!(await AdoptionRequestsService.canAdopt(rut))) {
+      await AdoptionRequestsService.rejectAdoptionRequest({
+        name,
+        lastname,
+        address,
+        rut,
+        description,
+        pokemonID,
+        createdAt: new Date().toISOString(),
+      });
+
       response.status(403).send('Adoption request rejected');
       return;
     }

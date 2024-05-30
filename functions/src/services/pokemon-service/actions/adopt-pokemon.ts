@@ -1,5 +1,8 @@
 import { db } from '../../../db';
-import { AdoptionRequest } from '../../adoption-requests-service/models/adoption-request';
+import {
+  ADOPTION_STATUS,
+  AdoptionRequest,
+} from '../../adoption-requests-service/models/adoption-request';
 
 export type AdoptionData = Pick<
   AdoptionRequest,
@@ -14,7 +17,7 @@ export async function adoptPokemon(pokemonId: string, adoptionData: AdoptionData
     t.set(newAdoptionRef, {
       ...adoptionData,
       pokemonID: pokemonId,
-      status: 'preparation',
+      status: ADOPTION_STATUS.PREPARATION,
     });
     t.update(pokemonRef, { available: false });
   });

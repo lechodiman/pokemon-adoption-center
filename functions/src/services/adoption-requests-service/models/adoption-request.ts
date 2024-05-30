@@ -1,10 +1,11 @@
 import { z } from 'zod';
 
 export const ADOPTION_STATUS = {
-  SUCCESS: 'success',
+  PREPARATION: 'preparation',
   TRANSPORTATION: 'transportation',
   FAILURE: 'failure',
-  PREPARATION: 'preparation',
+  SUCCESS: 'success',
+  REJECTED: 'rejected',
 } as const;
 
 const AdoptionRequestSchema = z.object({
@@ -20,9 +21,13 @@ const AdoptionRequestSchema = z.object({
     z.literal(ADOPTION_STATUS.TRANSPORTATION),
     z.literal(ADOPTION_STATUS.FAILURE),
     z.literal(ADOPTION_STATUS.PREPARATION),
+    z.literal(ADOPTION_STATUS.REJECTED),
   ]),
+  createdAt: z.string(),
 });
 
 export type AdoptionRequest = z.infer<typeof AdoptionRequestSchema>;
+
+export type NewAdoptionRequest = Omit<AdoptionRequest, 'id'>;
 
 export default AdoptionRequestSchema;
