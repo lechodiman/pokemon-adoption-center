@@ -6,8 +6,8 @@ const BLOCKED_TIME_HOURS = 24;
 export async function isUserBlocked(rut: string) {
   const blockedUsers = await db
     .collection('blockedUsers')
-    .where('rut', '==', rut)
     .orderBy('createdAt', 'desc')
+    .where('rut', '==', rut)
     .limit(1)
     .get();
 

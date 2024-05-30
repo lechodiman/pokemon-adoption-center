@@ -23,7 +23,7 @@ adoptionRequestsRouter.post('/adoption-request', async (req, response) => {
   const { error, data } = PostAdoptionRequestSchema.safeParse(req.body);
 
   if (error) {
-    response.status(400).send(error.message);
+    response.status(400).json({ error: error.errors });
     return;
   }
 
@@ -44,6 +44,7 @@ adoptionRequestsRouter.post('/adoption-request', async (req, response) => {
     const isUserBlocked = await BlockedUsersService.isUserBlocked(rut);
 
     if (isUserBlocked) {
+      logger.error('User is blocked:', rut);
       response.status(403).send('User is blocked');
       return;
     }
