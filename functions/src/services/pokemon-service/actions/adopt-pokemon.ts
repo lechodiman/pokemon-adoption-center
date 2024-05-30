@@ -2,6 +2,7 @@ import { db } from '../../../db';
 import {
   ADOPTION_STATUS,
   AdoptionRequest,
+  NewAdoptionRequest,
 } from '../../adoption-requests-service/models/adoption-request';
 
 export type AdoptionData = Pick<
@@ -13,12 +14,15 @@ export async function adoptPokemon(pokemonId: string, adoptionData: AdoptionData
   const pokemonRef = db.collection('pokemon').doc(pokemonId);
   const newAdoptionRef = db.collection('adoptionRequests').doc();
 
+  const newAdoptionData: NewAdoptionRequest = {
+    ...adoptionData,
+    status: ADOPTION_STATUS.PREPARATION,
+    pokemonID: pokemonId,
+    createdAt: new Date().toISOString(),
+  };
+
   await db.runTransaction(async (t) => {
-    t.set(newAdoptionRef, {
-      ...adoptionData,
-      pokemonID: pokemonId,
-      status: ADOPTION_STATUS.PREPARATION,
-    });
+    t.set(newAdoptionRef, newAdoptionData);
     t.update(pokemonRef, { available: false });
   });
 
