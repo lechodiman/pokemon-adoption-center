@@ -1,12 +1,18 @@
 import { db } from '../../../db';
 import { BlockedUsersService } from '../../blocked-users-service';
 import { ADOPTION_STATUS } from '../models/adoption-request';
+import * as logger from 'firebase-functions/logger';
+
+const SUCCESS_PROBABILITIES = {
+  default: 0,
+  withPreviousAdoptions: 0.9,
+} as const;
 
 export async function canAdopt(rut: string): Promise<boolean> {
-  const lastAdoptionRequests = await getLastAdoptionRequests(rut);
-  const allRejected = checkAllRejected(lastAdoptionRequests);
+  const allRejected = await areLastAdoptionsRejected(rut);
 
   if (allRejected) {
+    logger.error('User has 5 consecutive rejections:', rut);
     await BlockedUsersService.blockUser(rut);
     return false;
   }
@@ -32,24 +38,18 @@ async function findPreviousSuccessfulAdoptions(rut: string) {
   return previousAdoptions;
 }
 
-const SUCCESS_PROBABILITIES = {
-  default: 0.5,
-  withPreviousAdoptions: 0.9,
-} as const;
+async function areLastAdoptionsRejected(rut: string) {
+  const NUM_OF_REQS = 5;
 
-async function getLastAdoptionRequests(rut: string) {
-  return await db
+  const adoptionRequests = await db
     .collection('adoptionRequests')
     .where('rut', '==', rut)
     .orderBy('createdAt', 'desc')
-    .limit(5)
+    .limit(NUM_OF_REQS)
     .get();
-}
 
-function checkAllRejected(
-  adoptionRequests: FirebaseFirestore.QuerySnapshot<FirebaseFirestore.DocumentData>
-): boolean {
-  return adoptionRequests.docs.every(
-    (doc) => doc.data().status === ADOPTION_STATUS.REJECTED
+  return (
+    adoptionRequests.docs.length === NUM_OF_REQS &&
+    adoptionRequests.docs.every((doc) => doc.data().status === ADOPTION_STATUS.REJECTED)
   );
 }
