@@ -7,6 +7,7 @@ import adoptionRequestsRouter from './api/adoption-requests/router';
 import pokemonRouter from './api/pokemon/router';
 import { AdoptionRequestsService } from './services/adoption-requests-service';
 import rateLimit from 'express-rate-limit';
+import AdoptionRequestSchema from './services/adoption-requests-service/models/adoption-request';
 
 const app = express();
 
@@ -29,12 +30,13 @@ export const api = onRequest(app);
 
 export const onAdoptionRequestCreated = runWith({ timeoutSeconds: 300 })
   .firestore.document('adoptionRequests/{adoptionRequestID}')
-  .onCreate(async (snapshot, context) => {
-    const adoptionRequestId = context.params.adoptionRequestID;
-    const pokemonID = snapshot.data().pokemonID;
+  .onCreate(async (snapshot) => {
+    const adoptionRequest = AdoptionRequestSchema.parse({
+      id: snapshot.id,
+      ...snapshot.data(),
+    });
 
     await AdoptionRequestsService.processPokemonDelivery({
-      pokemonID,
-      adoptionRequestId,
+      adoptionRequest,
     });
   });

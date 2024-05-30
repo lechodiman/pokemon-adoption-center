@@ -2,22 +2,24 @@ import * as logger from 'firebase-functions/logger';
 import { PokemonService } from '../../pokemon-service';
 import { updateAdoptionRequest } from './update-adoption-request';
 import { delay, getRandomTimeInMilliseconds } from '../../utils';
-import { ADOPTION_STATUS } from '../models/adoption-request';
-
-const MAX_TRANSPORTATION_TIME_MINUTES = 3;
-const MIN_TRANSPORTATION_TIME_MINUTES = 1;
-const ONE_MINUTE_MS = 60 * 1000;
+import { ADOPTION_STATUS, AdoptionRequest } from '../models/adoption-request';
 
 export async function processPokemonDelivery({
-  pokemonID,
-  adoptionRequestId,
+  adoptionRequest,
 }: {
-  pokemonID: string;
-  adoptionRequestId: string;
+  adoptionRequest: AdoptionRequest;
 }) {
-  try {
-    logger.info(`New adoption request created with id: ${adoptionRequestId}`);
+  const { id: adoptionRequestId, pokemonID, status } = adoptionRequest;
+  logger.info(`New adoption request created with id: ${adoptionRequestId}`);
 
+  if (status === 'failure') {
+    logger.info(
+      `Adoption request id: ${adoptionRequestId} is already in 'failure' status`
+    );
+    return;
+  }
+
+  try {
     await delay(ONE_MINUTE_MS);
 
     logger.info(
@@ -38,7 +40,7 @@ export async function processPokemonDelivery({
 
     await delay(transportationTime);
 
-    const isSuccess = Math.random() < 0.95;
+    const isSuccess = Math.random() < DELIVERY_SUCCESS_RATE;
     const newStatus = isSuccess ? ADOPTION_STATUS.SUCCESS : ADOPTION_STATUS.FAILURE;
 
     logger.info(
@@ -57,3 +59,8 @@ export async function processPokemonDelivery({
     throw error;
   }
 }
+
+const MAX_TRANSPORTATION_TIME_MINUTES = 3;
+const MIN_TRANSPORTATION_TIME_MINUTES = 1;
+const ONE_MINUTE_MS = 60 * 1000;
+const DELIVERY_SUCCESS_RATE = 0.95;
