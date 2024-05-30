@@ -12,9 +12,9 @@ export async function processPokemonDelivery({
   const { id: adoptionRequestId, pokemonID, status } = adoptionRequest;
   logger.info(`New adoption request created with id: ${adoptionRequestId}`);
 
-  if (status === 'failure') {
+  if (status === 'rejected') {
     logger.info(
-      `Adoption request id: ${adoptionRequestId} is already in 'failure' status`
+      `Adoption request id: ${adoptionRequestId} is already in 'rejected' status`
     );
     return;
   }
