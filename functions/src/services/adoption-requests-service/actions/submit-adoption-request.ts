@@ -1,16 +1,19 @@
-import { db } from '../../../db';
+import { db } from '../../../config/db';
 import {
   ADOPTION_STATUS,
   AdoptionRequest,
   NewAdoptionRequest,
-} from '../../adoption-requests-service/models/adoption-request';
+} from '../models/adoption-request';
 
 export type AdoptionData = Pick<
   AdoptionRequest,
   'name' | 'lastname' | 'address' | 'rut' | 'description'
 >;
 
-export async function adoptPokemon(pokemonId: string, adoptionData: AdoptionData) {
+export async function submitAdoptionRequest(
+  pokemonId: string,
+  adoptionData: AdoptionData
+) {
   const pokemonRef = db.collection('pokemon').doc(pokemonId);
   const newAdoptionRef = db.collection('adoptionRequests').doc();
 
