@@ -38,6 +38,7 @@ export async function adoptPokemon({
   const canAdoptPokemon = await determineAdoptionEligibility(rut);
 
   if (!canAdoptPokemon) {
+    logger.log('Bad Luck! User is not eligible to adopt a pokemon:', rut);
     await rejectAdoptionRequest({
       name,
       lastname,
