@@ -10,3 +10,5 @@ export const PokemonSchema = z.object({
 });
 
 export type Pokemon = z.infer<typeof PokemonSchema>;
+
+export type NewPokemon = Omit<Pokemon, 'id'>;

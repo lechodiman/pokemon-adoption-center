@@ -23,11 +23,16 @@ const AdoptionRequestSchema = z.object({
     z.literal(ADOPTION_STATUS.PREPARATION),
     z.literal(ADOPTION_STATUS.REJECTED),
   ]),
-  createdAt: z.string(),
+  createdAt: z.string().transform((value) => new Date(value)),
 });
+
+const NewAdoptionRequestSchema = AdoptionRequestSchema.omit({
+  id: true,
+  createdAt: true,
+}).merge(z.object({ createdAt: z.string() }));
 
 export type AdoptionRequest = z.infer<typeof AdoptionRequestSchema>;
 
-export type NewAdoptionRequest = Omit<AdoptionRequest, 'id'>;
+export type NewAdoptionRequest = z.infer<typeof NewAdoptionRequestSchema>;
 
 export default AdoptionRequestSchema;

@@ -1,4 +1,4 @@
-import { db } from '../../../db';
+import { db } from '../../../config/db';
 import AdoptionRequestSchema from '../models/adoption-request';
 
 export async function findAdoptionRequestById(id: string) {

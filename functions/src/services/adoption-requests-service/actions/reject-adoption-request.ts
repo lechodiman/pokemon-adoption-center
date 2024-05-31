@@ -1,11 +1,11 @@
-import { db } from '../../../db';
+import { db } from '../../../config/db';
 import {
   ADOPTION_STATUS,
   AdoptionRequest,
   NewAdoptionRequest,
 } from '../models/adoption-request';
 
-type Params = Omit<AdoptionRequest, 'status' | 'id'>;
+type Params = Omit<AdoptionRequest, 'status' | 'id' | 'createdAt'>;
 
 export async function rejectAdoptionRequest({
   pokemonID,

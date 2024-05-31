@@ -1,4 +1,4 @@
-import { db } from '../../../db';
+import { db } from '../../../config/db';
 import { Pokemon, PokemonSchema } from '../models/pokemon';
 
 export async function findPokemon(pokemonID: string): Promise<Pokemon | null> {

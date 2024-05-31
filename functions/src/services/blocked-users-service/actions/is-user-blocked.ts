@@ -1,4 +1,4 @@
-import { db } from '../../../db';
+import { db } from '../../../config/db';
 import BlockedUserSchema from '../models/blocked-user';
 
 const BLOCKED_TIME_HOURS = 24;

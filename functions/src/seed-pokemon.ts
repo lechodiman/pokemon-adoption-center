@@ -1,30 +1,23 @@
 import axios from 'axios';
-import { db } from './db';
+import { db } from './config/db';
 import { faker } from '@faker-js/faker';
+import { NewPokemon } from './services/pokemon-service/models/pokemon';
 
 const POKEAPI_URL = 'https://pokeapi.co/api/v2/pokemon/';
-
-interface Pokemon {
-  name: string;
-  types: string[];
-  nickname?: string;
-  photoURL: string;
-  available: boolean;
-}
 
 async function fetchPokemonData(id: number): Promise<any> {
   const response = await axios.get(`${POKEAPI_URL}${id}`);
   return response.data;
 }
 
-async function seedPokemon(pokemon: Pokemon) {
+async function seedPokemon(pokemon: NewPokemon) {
   const pokemonRef = db.collection('pokemon').doc();
   await pokemonRef.set(pokemon);
 }
 
 async function main() {
   try {
-    const pokemons: Pokemon[] = [];
+    const pokemons: NewPokemon[] = [];
     for (let i = 1; i <= 25; i++) {
       const data = await fetchPokemonData(i);
       const name = data.name.charAt(0).toUpperCase() + data.name.slice(1);
@@ -39,7 +32,7 @@ async function main() {
 
       // Generate multiple instances with different nicknames
       for (let j = 0; j < 2; j++) {
-        const pokemon: Pokemon = {
+        const pokemon: NewPokemon = {
           name: name,
           types,
           nickname: faker.person.firstName(),
@@ -50,7 +43,6 @@ async function main() {
       }
     }
 
-    // Seed the data to Firestore
     for (const pokemon of pokemons) {
       await seedPokemon(pokemon);
     }

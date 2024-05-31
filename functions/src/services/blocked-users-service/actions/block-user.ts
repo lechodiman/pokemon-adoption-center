@@ -1,4 +1,4 @@
-import { db } from '../../../db';
+import { db } from '../../../config/db';
 import { NewBlockedUser } from '../models/blocked-user';
 
 export async function blockUser(rut: string) {

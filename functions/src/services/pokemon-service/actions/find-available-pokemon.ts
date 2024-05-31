@@ -1,4 +1,4 @@
-import { db } from '../../../db';
+import { db } from '../../../config/db';
 import { PokemonSchema } from '../models/pokemon';
 
 export async function findAvailablePokemon() {

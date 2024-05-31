@@ -1,4 +1,4 @@
-import { db } from '../../../db';
+import { db } from '../../../config/db';
 import { AdoptionRequest } from '../models/adoption-request';
 
 export async function updateAdoptionRequest(
