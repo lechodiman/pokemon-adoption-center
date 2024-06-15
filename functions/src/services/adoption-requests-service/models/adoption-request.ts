@@ -29,7 +29,7 @@ const AdoptionRequestSchema = z.object({
 const NewAdoptionRequestSchema = AdoptionRequestSchema.omit({
   id: true,
   createdAt: true,
-}).merge(z.object({ createdAt: z.string() }));
+});
 
 export type AdoptionRequest = z.infer<typeof AdoptionRequestSchema>;
 

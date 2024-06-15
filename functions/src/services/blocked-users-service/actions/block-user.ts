@@ -1,4 +1,4 @@
-import { db } from '../../../config/db';
+import { BlockedUsersRepository } from '../blocked-users-repository';
 import { NewBlockedUser } from '../models/blocked-user';
 
 export async function blockUser(rut: string) {
@@ -7,5 +7,5 @@ export async function blockUser(rut: string) {
     createdAt: new Date().toISOString(),
   };
 
-  await db.collection('blockedUsers').add(blockedUser);
+  await BlockedUsersRepository.create(blockedUser);
 }

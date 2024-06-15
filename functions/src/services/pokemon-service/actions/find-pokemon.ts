@@ -1,11 +1,6 @@
-import { db } from '../../../config/db';
-import { Pokemon, PokemonSchema } from '../models/pokemon';
+import { Pokemon } from '../models/pokemon';
+import { PokemonRepository } from '../pokemon-repository';
 
 export async function findPokemon(pokemonID: string): Promise<Pokemon | null> {
-  const pokemonRef = db.collection('pokemon').doc(pokemonID);
-  const pokemonSnapshot = await pokemonRef.get();
-  if (!pokemonSnapshot.exists) {
-    return null;
-  }
-  return PokemonSchema.parse({ id: pokemonSnapshot.id, ...pokemonSnapshot.data() });
+  return PokemonRepository.findPokemonById(pokemonID);
 }

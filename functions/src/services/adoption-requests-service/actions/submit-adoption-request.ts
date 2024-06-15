@@ -1,4 +1,4 @@
-import { db } from '../../../config/db';
+import { AdoptionRequestsRepository } from '../adoption-requests-repository';
 import {
   ADOPTION_STATUS,
   AdoptionRequest,
@@ -14,20 +14,13 @@ export async function submitAdoptionRequest(
   pokemonId: string,
   adoptionData: AdoptionData
 ) {
-  const pokemonRef = db.collection('pokemon').doc(pokemonId);
-  const newAdoptionRef = db.collection('adoptionRequests').doc();
-
   const newAdoptionData: NewAdoptionRequest = {
     ...adoptionData,
     status: ADOPTION_STATUS.PREPARATION,
     pokemonID: pokemonId,
-    createdAt: new Date().toISOString(),
   };
 
-  await db.runTransaction(async (t) => {
-    t.set(newAdoptionRef, newAdoptionData);
-    t.update(pokemonRef, { available: false });
-  });
+  const id = await AdoptionRequestsRepository.createSuccesfulAdoption(newAdoptionData);
 
-  return newAdoptionRef.id;
+  return id;
 }

@@ -1,9 +1,5 @@
-import { db } from '../../../config/db';
-import {
-  ADOPTION_STATUS,
-  AdoptionRequest,
-  NewAdoptionRequest,
-} from '../models/adoption-request';
+import { AdoptionRequestsRepository } from '../adoption-requests-repository';
+import { AdoptionRequest } from '../models/adoption-request';
 
 type Params = Omit<AdoptionRequest, 'status' | 'id' | 'createdAt'>;
 
@@ -15,20 +11,15 @@ export async function rejectAdoptionRequest({
   rut,
   description,
 }: Params) {
-  const newAdoptionRef = db.collection('adoptionRequests').doc();
-
-  const newAdoptionRequestDocument: NewAdoptionRequest = {
+  const newAdoptionId = await AdoptionRequestsRepository.create({
     pokemonID,
     name,
     lastname,
     address,
     rut,
     description,
-    status: ADOPTION_STATUS.REJECTED,
-    createdAt: new Date().toISOString(),
-  };
+    status: 'rejected',
+  });
 
-  await newAdoptionRef.set(newAdoptionRequestDocument);
-
-  return newAdoptionRef.id;
+  return newAdoptionId;
 }
